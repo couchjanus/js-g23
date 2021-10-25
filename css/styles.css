@@ -115,6 +115,9 @@ a {
 .bg-warning{
     background: rgb(255, 235, 0);
 }
+.bg-info{
+    background: rgb(0, 128, 0);
+}
 .bg-light {
     background-color: #f8f9fa !important
 }
