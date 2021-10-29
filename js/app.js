@@ -1,141 +1,21 @@
 // aplication app.js
 'use strict';
-// 
 
-const products = [
-    {
-        id: 1,
-        name: 'Air Pads',
-        price: 123,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-1.jpg',
-        badge: {
-            type: 'danger',
-            title: 'Soldout'
-        }
-    },
-    {
-        id: 2,
-        name: 'Air Bag',
-        price: 234,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-2.jpg',
-        badge: {
-            type: 'none',
-            title: ''
-        }
-    },
-    {
-        id: 3,
-        name: 'T-Shirt',
-        price: 222,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-3.jpg',
-        badge: {
-            type: 'info',
-            title: 'New'
-        }
-    },
-    {
-        id: 4,
-        name: 'An Watch',
-        price: 444,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-4.jpg',
-        badge: {
-            type: 'none',
-            title: ''
-        }
-    },
-    {
-        id: 5,
-        name: 'Red Watch',
-        price: 555,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-5.jpg',
-        badge: {
-            type: 'warning',
-            title: 'Action'
-        }
-    },
-    {
-        id: 6,
-        name: 'Nike SHoes',
-        price: 666,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-6.jpg',
-        badge: {
-            type: 'danger',
-            title: 'Soldout'
-        }
-    },
-    {
-        id: 7,
-        name: 'Air Pads',
-        price: 123,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-7.jpg',
-        badge: {
-            type: 'danger',
-            title: 'Soldout'
-        }
-    },
-    {
-        id: 8,
-        name: 'Air Bag',
-        price: 234,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-8.jpg',
-        badge: {
-            type: 'none',
-            title: ''
-        }
-    },
-    {
-        id: 9,
-        name: 'T-Shirt',
-        price: 222,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-9.jpg',
-        badge: {
-            type: 'info',
-            title: 'New'
-        }
-    },
-    {
-        id: 10,
-        name: 'An Watch',
-        price: 444,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-10.jpg',
-        badge: {
-            type: 'none',
-            title: ''
-        }
-    },
-    {
-        id: 11,
-        name: 'Red Watch',
-        price: 555,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-11.jpg',
-        badge: {
-            type: 'warning',
-            title: 'Action'
-        }
-    },
-    {
-        id: 12,
-        name: 'Nike SHoes',
-        price: 666,
-        description: 'Vero, animi aliquam! Eaque, impedit laboriosam a, facere dolor reprehenderit esse possimus sapiente illum dolorum',
-        image: 'images/product-12.jpg',
-        badge: {
-            type: 'danger',
-            title: 'Soldout'
-        }
-    },
-];
+
+function rating(stars){
+    let result = '';
+
+    for (let i = 0; i < stars; i++){
+        result +='<li class="m-0 list-inline-item"><i class="fas fa-star small text-warning"></i></li>';
+    }
+
+    for (let i = 0; i < 5 - stars; i++){
+        result += '<li class="m-0 list-inline-item"><i class="far fa-star small text-muted"></i></li>;'
+    }
+
+    return result;
+}
+// console.log(rating(3));
 
 let productTemplate = (product) =>`<!-- product -->
     <div class="pb-5 product-wrapper">
@@ -144,9 +24,9 @@ let productTemplate = (product) =>`<!-- product -->
             <a href="detail.html">
                 <img src="${product.image}" class="img-fluid" alt="${product.description}" />
             </a>
-            <div class="shadow btn-block d-inline-block">
+            <div class="shadow btn-block d-inline-block" data-id="${product.id}">
                     <span class="product-btn wish-this" href=""><i class="fas fa-heart"></i></span>
-                    <span class="product-btn detail" data-id="${product.id}"><i class="fas fa-expand"></i></span>
+                    <span class="product-btn detail"><i class="fas fa-expand"></i></span>
                     <span class="product-btn add-to-cart"><i class="fas fa-dolly-flatbed"></i></span>
             </div>
             <h6 class="text-center"><a class="reset-anchor" href="detail.html">${product.name}</a></h6>
@@ -163,7 +43,7 @@ let modalTemplate = (product) =>`<!--  Modal -->
                 <div class="row align-items-stretch">
 
                     <div class="col-lg-6 p-lg-0">
-                        <div class="bg-center bg-cover product-view d-block h-100" style="background: url(images/product-${product.id}.jpg)">
+                        <div class="bg-center bg-cover product-view d-block h-100" style="background: url(${product.image}">
                         </div>
                     </div>
 
@@ -171,18 +51,12 @@ let modalTemplate = (product) =>`<!--  Modal -->
                         <a href="#" title="Close" class="p-4 border-0 close modal-close"><i class="fas fa-times"></i></a>
                         <div class="p-5 my-md-4">
                             <ul class="mb-2 list-inline">
-                                <li class="m-0 list-inline-item"><i class="fas fa-star small text-warning"></i></li>
-                                <li class="m-0 list-inline-item"><i class="fas fa-star small text-warning"></i></li>
-                                <li class="m-0 list-inline-item"><i class="fas fa-star small text-warning"></i></li>
-                                <li class="m-0 list-inline-item"><i class="fas fa-star small text-warning"></i></li>
-                                <li class="m-0 list-inline-item"><i class="fas fa-star small text-warning"></i></li>
+                               ${rating(product.stars)}
                             </ul>
 
-                            <h2 class="h5 text-uppercase">Kui Ye Chen’s AirPods</h2>
-                            <p class="text-muted">$250</p>
-                            <p class="mb-4 text-small">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ut ullamcorper
-                                leo, eget euismod orci. Cum sociis natoque penatibus et magnis dis parturient montes nascetur
-                                ridiculus mus. Vestibulum ultricies aliquam convallis.</p>
+                            <h2 class="h5 text-uppercase">${product.name}</h2>
+                            <p class="text-muted">$${product.price}</p>
+                            <p class="mb-4 text-small">${product.description}</p>
 
                             <ul class="mb-4 list-inline">
                                 <li class="list-inline-item me-3"><strong>Quantity</strong></li>
@@ -220,6 +94,22 @@ function populateProducts(){
     return result;
 }
 
+function categoryTemplate(product){
+    return `<li class="list-group-item d-flex justify-content-between align-items-start">
+    <div class="ms-2 me-auto">
+      <div class="fw-bold">${product.category.name}</div>
+    </div>
+    <span class="badge bg-primary rounded-pill">14</span>
+  </li>`;
+}
+
+function populateCategories(){
+    let result = '';
+    products.forEach(product=>{
+        result += categoryTemplate(product);
+    });
+    return result;
+}
 
 function toggleModal(param, product={}){
     // console.log((document.querySelector('.modal-window').innerHTML==''))
@@ -233,11 +123,19 @@ function toggleModal(param, product={}){
 
 let raite = 0
 
+let cart = [];
+
 let productsWrapper = document.querySelector('.products-wrapper');
+
+let listGroupNumbered = document.querySelector('.list-group-numbered');
 
 document.addEventListener('DOMContentLoaded', () => {
 
     productsWrapper.innerHTML = populateProducts();
+
+    if (listGroupNumbered){
+        listGroupNumbered.innerHTML = populateCategories()
+    }
 
     // productsWrapper.innerHTML = "<h2>Product list</h2>";
     //  wish-this
@@ -256,9 +154,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // add-to-cart
     let addToCartButtons = document.querySelectorAll('.add-to-cart');
 
+    let total = 0;
+    let qty = 0;
     addToCartButtons.forEach(button => {
         button.addEventListener('click', (event) => {
-            console.log(event.target)
+            let productId = event.target.closest('.btn-block').dataset.id;
+            let product = products.find(product => product.id == productId);
+            
+            // cart push <- <-
+
+            cart.push(product)
+            total += product.price
+            qty++; 
+            console.log('total: ', total, 'qty: ', qty)
+            // pop ->
+
+            // <- shft cart
+
+            // -> unshift cart
+
+
         })
     })
 
@@ -267,17 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     detailButtons.forEach(button => {
         button.addEventListener('click', (event) => {
-            // console.log(typeof event.target.getAttribute('data-id'))
-
-            let productId = event.target.getAttribute('data-id')
-            
-            // console.log(productId.getAttribute('data-id'))
-            let product = {
-                id: productId,
-            }
+            let productId = event.target.closest('.btn-block').dataset.id;
+            let product = products.find(product => product.id == productId);
             toggleModal('block', product);
             modalWindow.querySelector('.close')
-            .addEventListener('click', () => toggleModal('none'))
+            .addEventListener('click', (event) => {
+                event.preventDefault();
+                toggleModal('none');
+            })
         })
     });
 
