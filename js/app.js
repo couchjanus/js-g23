@@ -123,22 +123,95 @@ function toggleModal(param, product={}){
 
 let raite = 0
 
-let cart = [];
 
 let productsWrapper = document.querySelector('.products-wrapper');
 
 let listGroupNumbered = document.querySelector('.list-group-numbered');
 
+function getStorageItem(key){
+    return JSON.parse(localStorage.getItem(key));
+}
+function setStorageItem(key, item){
+    localStorage.setItem(key, JSON.stringify(item));
+}
+function initStorage(key){
+    let basket = []
+    try{  
+        basket = localStorage.getItem(key) ? 
+        getStorageItem(key)
+        :setStorageItem(key, []);
+    }catch(err){
+        if(err==QUOTA_EXCEEDED_ERR){
+            console.log("Local Storage Limited is exceeded");
+        }
+    }
+    return basket;
+}
+
+function saveCart(cart){
+    setStorageItem('basket', cart);
+}
+
+// console.log(initStorage('basket'));
+let cart = initStorage('basket');
+
+
+function addProductToCart(product, amount = 1){
+    let inCart = cart.some(element => element.id === product.id);
+    if (inCart){
+        cart.forEach(item=>{
+            if(item.id === product.id){
+                item.amount += amount;
+            }
+        })
+    }else{
+        let cartItem = {...product, amount: amount};
+        cart = [...cart, cartItem];
+    }
+    
+    saveCart(cart);
+}
+
+function renderCartItem(item){
+    let product = products.find(product => product.id == item.id);
+    return `<tr>
+    <th class="p-3  border-0" scope="row">
+      <div class="d-flex align-items-center"><a class="reset-anchor d-block" href="detail.html"><img src="${product.image}" alt="${product.name}" width="70"></a>
+        <div class="ms-3"><strong class="h6"><a class="reset-anchor" href="detail.html">${product.name}</a></strong></div>
+      </div>
+    </th>
+    <td class="p-3 align-middle border-0">
+      <p class="mb-0 small">$${product.price}</p>
+    </td>
+    <td class="p-3 align-middle border-0">
+      <div class="border d-inline-block px-2">
+        <div class="quantity">
+          <button class="dec-btn p-0" onclick="decrease(this)"><i class="fas fa-caret-left"></i></button>
+          <input class="form-control border-0 shadow-0 p-0 quantity-result" type="text" value="${item.amount}">
+          <button class="inc-btn p-0" onclick="increase(this)"><i class="fas fa-caret-right"></i></button>
+        </div>
+      </div>
+    </td>
+    <td class="p-3 align-middle border-0">
+      <p class="mb-0 small">$${product.price*item.amount}</p>
+    </td>
+    <td class="p-3 align-middle border-0"><a class="reset-anchor" href="#"><i class="fas fa-trash-alt small text-muted"></i></a></td>
+  </tr>`;
+}
+function populateShoppingCart(cart){
+    let res = '';
+    cart.forEach(item => res+=renderCartItem(item));
+    return res;
+}
 document.addEventListener('DOMContentLoaded', () => {
-
-    productsWrapper.innerHTML = populateProducts();
-
+    if(productsWrapper){
+        productsWrapper.innerHTML = populateProducts();
+    }
     if (listGroupNumbered){
         listGroupNumbered.innerHTML = populateCategories()
     }
 
-    // productsWrapper.innerHTML = "<h2>Product list</h2>";
-    //  wish-this
+    
     let wishThisButtons = document.querySelectorAll('.wish-this');
    
 
@@ -159,21 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
     addToCartButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             let productId = event.target.closest('.btn-block').dataset.id;
-            let product = products.find(product => product.id == productId);
             
-            // cart push <- <-
-
-            cart.push(product)
-            total += product.price
-            qty++; 
-            console.log('total: ', total, 'qty: ', qty)
-            // pop ->
-
-            // <- shft cart
-
-            // -> unshift cart
-
-
+            addProductToCart({id: productId});
+            
+            // let product = products.find(product => product.id == productId);
         })
     })
 
@@ -192,6 +254,12 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         })
     });
+
+    const shoppingCart = document.querySelector('.shopping-cart');
+
+    if(shoppingCart){
+        shoppingCart.innerHTML = populateShoppingCart(cart);
+    }
 
 
 });
