@@ -1040,7 +1040,10 @@ small {
 .text-warning {
     color: #ffc107 !important
 }
-
+.text-bold{
+    font-weight: 700;
+    font-size: 1.2rem;
+}
 .table-responsive {
     overflow-x                : hidden;
 }

@@ -24,7 +24,7 @@ let productTemplate = (product) =>`<!-- product -->
             <a href="detail.html">
                 <img src="${product.image}" class="img-fluid" alt="${product.description}" />
             </a>
-            <div class="shadow btn-block d-inline-block" data-id="${product.id}">
+            <div class="shadow btn-block d-inline-block" data-id="${product.id}"  data-price="${product.price}">
                     <span class="product-btn wish-this" href=""><i class="fas fa-heart"></i></span>
                     <span class="product-btn detail"><i class="fas fa-expand"></i></span>
                     <span class="product-btn add-to-cart"><i class="fas fa-dolly-flatbed"></i></span>
@@ -170,11 +170,12 @@ function addProductToCart(product, amount = 1){
     }
     
     saveCart(cart);
+    amountItems(cart);
 }
 
 function renderCartItem(item){
     let product = products.find(product => product.id == item.id);
-    return `<tr>
+    return `<tr class="cart-item" id="id${product.id}">
     <th class="p-3  border-0" scope="row">
       <div class="d-flex align-items-center"><a class="reset-anchor d-block" href="detail.html"><img src="${product.image}" alt="${product.name}" width="70"></a>
         <div class="ms-3"><strong class="h6"><a class="reset-anchor" href="detail.html">${product.name}</a></strong></div>
@@ -186,16 +187,16 @@ function renderCartItem(item){
     <td class="p-3 align-middle border-0">
       <div class="border d-inline-block px-2">
         <div class="quantity">
-          <button class="dec-btn p-0" onclick="decrease(this)"><i class="fas fa-caret-left"></i></button>
+          <button class="dec-btn p-0" data-id="${product.id}"><i class="fas fa-caret-left"></i></button>
           <input class="form-control border-0 shadow-0 p-0 quantity-result" type="text" value="${item.amount}">
-          <button class="inc-btn p-0" onclick="increase(this)"><i class="fas fa-caret-right"></i></button>
+          <button class="inc-btn p-0" data-id="${product.id}"><i class="fas fa-caret-right"></i></button>
         </div>
       </div>
     </td>
     <td class="p-3 align-middle border-0">
-      <p class="mb-0 small">$${product.price*item.amount}</p>
+      <p class="mb-0 small">$<span class="product-subtotal"></span></p>
     </td>
-    <td class="p-3 align-middle border-0"><a class="reset-anchor" href="#"><i class="fas fa-trash-alt small text-muted"></i></a></td>
+    <td class="p-3 align-middle border-0"><a class="reset-anchor" href="#"><i class="fas fa-trash-alt small text-muted" data-id="${product.id}"></i></a></td>
   </tr>`;
 }
 function populateShoppingCart(cart){
@@ -203,7 +204,62 @@ function populateShoppingCart(cart){
     cart.forEach(item => res+=renderCartItem(item));
     return res;
 }
+
+const shoppingCart = document.querySelector('.shopping-cart');
+
+const filterItem = (cart, id) => cart.filter(item => item.id != id);
+const findItem = (cart, id) => cart.find(item => item.id == id);
+
+function setCartTotal(cart){
+    let tmpTotal = 0;
+    cart.map(item => {
+        tmpTotal = item.price * item.amount;
+        shoppingCart.querySelector(`#id${item.id} .product-subtotal`).textContent = parseFloat(tmpTotal.toFixed(2));
+    });
+    document.querySelector('.cart-total').textContent = parseFloat(cart.reduce((previous, current) => previous + current.price * current.amount,0).toFixed(2));
+}
+
+const amountItemsInCart = document.querySelector('.amount-items-in-cart');
+
+function amountItems(cart){
+    amountItemsInCart.textContent = cart.reduce((prev, cur) => prev + cur.amount, 0); 
+}
+
+function renderCart(){
+    shoppingCart.addEventListener('click', event => {
+        if(event.target.classList.contains('fa-trash-alt')){
+            cart = filterItem(cart, event.target.dataset.id);
+            setCartTotal(cart);
+            saveCart(cart);
+            amountItems(cart);
+            event.target.closest('.cart-item').remove();
+
+        } else if(event.target.classList.contains('inc-btn')){
+            let tempItem = findItem(cart, event.target.dataset.id);
+            tempItem.amount += 1;
+
+            event.target.previousElementSibling.value = tempItem.amount;
+            setCartTotal(cart);
+            saveCart(cart);
+            amountItems(cart);
+        } else if(event.target.classList.contains('dec-btn')){
+            let tempItem = findItem(cart, event.target.dataset.id);
+            if(tempItem !== undefined && tempItem.amount > 1){
+                tempItem.amount -= 1;
+                event.target.nextElementSibling.value = tempItem.amount;
+            } else{
+                cart = filterItem(cart, event.target.dataset.id);
+                event.target.closest('.cart-item').remove();
+            }
+            setCartTotal(cart);
+            saveCart(cart);
+            amountItems(cart);
+        }
+    })
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    amountItems(cart);
     if(productsWrapper){
         productsWrapper.innerHTML = populateProducts();
     }
@@ -227,14 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // add-to-cart
     let addToCartButtons = document.querySelectorAll('.add-to-cart');
 
-    let total = 0;
-    let qty = 0;
+
     addToCartButtons.forEach(button => {
         button.addEventListener('click', (event) => {
             let productId = event.target.closest('.btn-block').dataset.id;
-            
-            addProductToCart({id: productId});
-            
+            let price = event.target.closest('.btn-block').dataset.price;
+            addProductToCart({id: productId, price: price});
+            // amountItems(cart);
             // let product = products.find(product => product.id == productId);
         })
     })
@@ -255,10 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     });
 
-    const shoppingCart = document.querySelector('.shopping-cart');
+    
 
     if(shoppingCart){
         shoppingCart.innerHTML = populateShoppingCart(cart);
+        setCartTotal(cart);
+        renderCart();
     }
 
 
