@@ -77,8 +77,8 @@ const products = [
         },
         stars: 1,
         category: {
-            id: 4,
-            name: 'Watches'
+            id: 1,
+            name: 'Electronic'
         }
     },
     {

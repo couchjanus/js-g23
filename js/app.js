@@ -86,7 +86,7 @@ let modalTemplate = (product) =>`<!--  Modal -->
 // 
 let modalWindow = document.querySelector('.modal-window');
 
-function populateProducts(){
+function populateProducts(products){
     let result = '';
     products.forEach(product=>{
         result += productTemplate(product);
@@ -94,21 +94,55 @@ function populateProducts(){
     return result;
 }
 
-function categoryTemplate(product){
+function categoryTemplate(category){
     return `<li class="list-group-item d-flex justify-content-between align-items-start">
     <div class="ms-2 me-auto">
-      <div class="fw-bold">${product.category.name}</div>
+      <div class="fw-bold"><a href="#" class="category-item" data-category="${category.name}">${category.name}</a></div>
     </div>
     <span class="badge bg-primary rounded-pill">14</span>
   </li>`;
 }
 
-function populateCategories(){
+function populateCategories(categories){
     let result = '';
-    products.forEach(product=>{
-        result += categoryTemplate(product);
+    categories.forEach(item=>{
+        result += categoryTemplate(item);
     });
     return result;
+}
+
+
+function distinctCategories(){
+    let mapped = [...products.map(item => item.category)];
+    let distinct = []
+    
+    for(let i=0; i<mapped.length; i++){
+        if(!(mapped[i].id in distinct)){
+            distinct.push(mapped[i])
+         }
+    }
+    return distinct
+}
+
+function renderCategory(selector){
+    const categoryItems = document.querySelectorAll(selector);
+    categoryItems.forEach(item => item.addEventListener('click', function(e){
+       
+        if (e.target.classList.contains('category-item')){
+            
+            const category = e.target.dataset.category;
+            console.log(category) 
+            const categoryFilter = items => items.filter(item => item.category.name.includes(category));
+            console.log(categoryFilter(products)) 
+            if(productsWrapper){
+                productsWrapper.innerHTML = populateProducts(categoryFilter(products));
+            }
+        }else{
+            if(productsWrapper){
+                productsWrapper.innerHTML = populateProducts(products);
+            }  
+        }
+    }))
 }
 
 function toggleModal(param, product={}){
@@ -258,16 +292,63 @@ function renderCart(){
     })
 }
 
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
     amountItems(cart);
     if(productsWrapper){
-        productsWrapper.innerHTML = populateProducts();
+        productsWrapper.innerHTML = populateProducts(products);
     }
     if (listGroupNumbered){
-        listGroupNumbered.innerHTML = populateCategories()
+        listGroupNumbered.innerHTML = populateCategories(distinctCategories());
+
+        renderCategory('.categories-list');
     }
 
-    
+    function sorted(key, order='acs'){
+        return (a, b) => {
+            if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)){
+                return 0
+            }
+            const A = (typeof a[key] === 'string')
+            ? a[key].toUpperCase() : a[key];
+            const B = (typeof b[key] === 'string')
+            ? b[key].toUpperCase() : b[key];
+
+            let compare = 0;
+            if(A>B){
+                compare = 1;
+            }else if(A<B){
+                compare = -1;
+            }
+            return (
+                (order === 'desc')?(compare*-1):compare
+            );
+        };
+    }
+
+    let selectpicker = document.querySelector('.selectpicker');
+    if(selectpicker){
+      
+        selectpicker.addEventListener('change', function() {
+            switch(this.value){
+                case 'low-high':
+                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('price', 'asc')))
+                    break;
+                case 'high-low':
+                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('price', 'desc')))
+                    break;
+                case 'popularity':
+                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('stars', 'asc')))
+                    break;
+                default:
+                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('id', 'asc')))
+            }
+            
+        })
+    }
+
     let wishThisButtons = document.querySelectorAll('.wish-this');
    
 
