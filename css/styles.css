@@ -14,6 +14,7 @@
     --text-line-height: 1.5;
     --font-sans-serif: 'Open Sans', sans-serif;
     --transition: all 2s linear;
+    --categories-length: 0;
 }
 
 /* common */
@@ -1266,7 +1267,7 @@ small,
 .carousel .carousel-track {
     animation: scroll 40s linear infinite;
     display: flex;
-    width: calc(250px * 8);
+    width: calc(250px * 2*var(--categories-length));
 }
 
 .carousel-item img {
@@ -1336,7 +1337,7 @@ small,
         transform: translateX(0);
     }
     100% {
-        transform: translateX(calc(-250px * 4));
+        transform: translateX(calc(-250px * var(--categories-length)));
     }
 }
 

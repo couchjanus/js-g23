@@ -63,13 +63,13 @@ let modalTemplate = (product) =>`<!--  Modal -->
                                 <li class="list-inline-item">
                                     <div class="p-1 border d-flex align-items-center justify-content-between">
                                         <div class="py-0 quantity">
-                                            <button class="p-0 dec-btn" onclick="decrease(this)"><i class="fas fa-caret-left"></i></button>
+                                            <button class="p-0 dec-btn"><i class="fas fa-caret-left"></i></button>
                                             <input class="p-0 border-0 form-control shadow-0 quantity-result" type="text" value="1">
-                                            <button class="p-0 inc-btn" onclick="increase(this)"><i class="fas fa-caret-right"></i></button>
+                                            <button class="p-0 inc-btn"><i class="fas fa-caret-right"></i></button>
                                         </div>
                                     </div>
                                 </li>
-                                <li class="list-inline-item"><a class="btn btn-primary" href="cart.html">
+                                <li class="list-inline-item"><a class="btn btn-primary add-to-cart" href="#" data-id="${product.id}" data-price="${product.price}">
                                     Add to cart</a></li>
                             </ul>
                             <a class="p-0 reset-anchor" href="#">
@@ -84,7 +84,7 @@ let modalTemplate = (product) =>`<!--  Modal -->
 </div>`;
 
 // 
-let modalWindow = document.querySelector('.modal-window');
+
 
 function populateProducts(products){
     let result = '';
@@ -114,6 +114,7 @@ function populateCategories(categories){
 
 function distinctCategories(){
     let mapped = [...products.map(item => item.category)];
+    
     let distinct = []
     
     for(let i=0; i<mapped.length; i++){
@@ -121,41 +122,77 @@ function distinctCategories(){
             distinct.push(mapped[i])
          }
     }
+    // console.log(distinct)
     return distinct
 }
+
+function getDistinctCategories(categories){
+    let distinct = [];
+
+    for (let i=0; i<categories.length; i++){
+        for(let j=0; j<products.length; j++){
+            if(products[j].category.name === categories[i].name){
+                distinct.push({...categories[i], image:products[j].image});
+                break;
+            }
+        }
+    }
+    return distinct;
+}
+
+// console.log(getDistinctCategories(distinctCategories()))
 
 function renderCategory(selector){
     const categoryItems = document.querySelectorAll(selector);
     categoryItems.forEach(item => item.addEventListener('click', function(e){
-       
         if (e.target.classList.contains('category-item')){
-            
             const category = e.target.dataset.category;
-            console.log(category) 
             const categoryFilter = items => items.filter(item => item.category.name.includes(category));
-            console.log(categoryFilter(products)) 
-            if(productsWrapper){
-                productsWrapper.innerHTML = populateProducts(categoryFilter(products));
-            }
+            productsWrapper.innerHTML = populateProducts(categoryFilter(products));
         }else{
-            if(productsWrapper){
-                productsWrapper.innerHTML = populateProducts(products);
-            }  
+            productsWrapper.innerHTML = populateProducts(products);
         }
     }))
 }
 
+const modalWindow = document.querySelector('.modal-window');
+
+function renderModal(){
+    let addToCart = modalWindow.querySelector('.add-to-cart');
+
+    modalWindow.querySelector('.inc-btn').addEventListener('click', e => {
+        let val = e.target.previousElementSibling.value;
+        val++;
+        e.target.previousElementSibling.value = val;
+    });
+
+    modalWindow.querySelector('.dec-btn').addEventListener('click', e => {
+        let val = e.target.nextElementSibling.value;
+        if(val > 1){
+            val--;
+        }
+        e.target.nextElementSibling.value = val;
+    });
+    
+    let quantityResult = modalWindow.querySelector('.quantity-result');
+
+    addToCart.addEventListener('click', event => {
+        let productId = event.target.dataset.id;
+        let price = event.target.dataset.price;
+        addProductToCart({id:productId, price:price}, +quantityResult.value);
+    })
+}
+
 function toggleModal(param, product={}){
-    // console.log((document.querySelector('.modal-window').innerHTML==''))
-   if(document.querySelector('.modal-window').innerHTML==''){
-        document.querySelector('.modal-window').innerHTML =  modalTemplate(product);
+   if(modalWindow.innerHTML==''){
+    modalWindow.innerHTML =  modalTemplate(product);
+    renderModal();
    }else{
-    document.querySelector('.modal-window').innerHTML = '';
+    modalWindow.innerHTML = '';
    }
     modalWindow.style.display = param;
 }
 
-let raite = 0
 
 
 let productsWrapper = document.querySelector('.products-wrapper');
@@ -292,12 +329,32 @@ function renderCart(){
     })
 }
 
+const carouselItem = data => `<div class="carousel-item">
+<a class="category-item" href="#" data-category="${data.name}">
+    <img src="${data.image}" alt="${data.name}" height="100" with="250" class="category-item">
+    <strong class="category-item category-item-title" data-category="${data.name}">${data.name}</strong>
+</a>
+</div>`;
 
+function makeCarousel(categories){
+    let result = '';
+    categories.forEach(item => {
+        result += carouselItem(item);
+    });
+    result += result;
+    document.querySelector('.carousel-track').innerHTML = result;
+}
 
 
 document.addEventListener('DOMContentLoaded', () => {
     amountItems(cart);
-    if(productsWrapper){
+
+    if (document.querySelector('.carousel')){
+        document.body.style.setProperty("--categories-length", distinctCategories().length);
+        makeCarousel(getDistinctCategories(distinctCategories()));
+
+        renderCategory('.carousel-item');
+
         productsWrapper.innerHTML = populateProducts(products);
     }
     if (listGroupNumbered){
@@ -370,8 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let productId = event.target.closest('.btn-block').dataset.id;
             let price = event.target.closest('.btn-block').dataset.price;
             addProductToCart({id: productId, price: price});
-            // amountItems(cart);
-            // let product = products.find(product => product.id == productId);
+           
         })
     })
 
