@@ -112,7 +112,7 @@ function populateCategories(categories){
 }
 
 
-function distinctCategories(){
+function distinctCategories(products){
     let mapped = [...products.map(item => item.category)];
     
     let distinct = []
@@ -126,7 +126,7 @@ function distinctCategories(){
     return distinct
 }
 
-function getDistinctCategories(categories){
+function getDistinctCategories(categories, products){
     let distinct = [];
 
     for (let i=0; i<categories.length; i++){
@@ -140,11 +140,12 @@ function getDistinctCategories(categories){
     return distinct;
 }
 
-// console.log(getDistinctCategories(distinctCategories()))
 
-function renderCategory(selector){
+
+function renderCategory(selector, products){
     const categoryItems = document.querySelectorAll(selector);
     categoryItems.forEach(item => item.addEventListener('click', function(e){
+        e.preventDefault();
         if (e.target.classList.contains('category-item')){
             const category = e.target.dataset.category;
             const categoryFilter = items => items.filter(item => item.category.name.includes(category));
@@ -152,6 +153,8 @@ function renderCategory(selector){
         }else{
             productsWrapper.innerHTML = populateProducts(products);
         }
+        addToCartButton()
+        detailButton(products)
     }))
 }
 
@@ -244,7 +247,7 @@ function addProductToCart(product, amount = 1){
     amountItems(cart);
 }
 
-function renderCartItem(item){
+function renderCartItem(item, products){
     let product = products.find(product => product.id == item.id);
     return `<tr class="cart-item" id="id${product.id}">
     <th class="p-3  border-0" scope="row">
@@ -270,9 +273,9 @@ function renderCartItem(item){
     <td class="p-3 align-middle border-0"><a class="reset-anchor" href="#"><i class="fas fa-trash-alt small text-muted" data-id="${product.id}"></i></a></td>
   </tr>`;
 }
-function populateShoppingCart(cart){
+function populateShoppingCart(cart, products){
     let res = '';
-    cart.forEach(item => res+=renderCartItem(item));
+    cart.forEach(item => res+=renderCartItem(item, products));
     return res;
 }
 
@@ -346,114 +349,132 @@ function makeCarousel(categories){
 }
 
 
+function fetchProducts(url){
+    return fetch(url, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'}
+    }).then(response => {
+        if(response.status >= 400){
+            return response.json().then(err => {
+                const error = new Error('Something went weong!')
+                error.data = err
+                throw error
+            })
+        }
+        return response.json()
+    })
+}
+
+function addToCartButton(){
+     // add-to-cart
+     let addToCartButtons = document.querySelectorAll('.add-to-cart');
+     addToCartButtons.forEach(button => {
+         button.addEventListener('click', (event) => {
+             let productId = event.target.closest('.btn-block').dataset.id;
+             let price = event.target.closest('.btn-block').dataset.price;
+             addProductToCart({id: productId, price: price});
+         
+         })
+     })
+
+}
+
+function detailButton(products){
+    
+        // detail
+        let detailButtons = document.querySelectorAll('.detail');
+
+        detailButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                let productId = event.target.closest('.btn-block').dataset.id;
+                let product = products.find(product => product.id == productId);
+                toggleModal('block', product);
+                modalWindow.querySelector('.close')
+                .addEventListener('click', (event) => {
+                    event.preventDefault();
+                    toggleModal('none');
+                })
+            })
+        });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     amountItems(cart);
+ 
+    fetchProducts('https://my-json-server.typicode.com/couchjanus/db/products')
+    .then(products => {
+        // console.log(response)
+        if (document.querySelector('.carousel')){
+            console.log(distinctCategories(products).length)
+            document.body.style.setProperty("--categories-length", distinctCategories(products).length);
 
-    if (document.querySelector('.carousel')){
-        document.body.style.setProperty("--categories-length", distinctCategories().length);
-        makeCarousel(getDistinctCategories(distinctCategories()));
+            makeCarousel(getDistinctCategories(distinctCategories(products), products));
 
-        renderCategory('.carousel-item');
+            renderCategory('.carousel-item', products);
 
-        productsWrapper.innerHTML = populateProducts(products);
-    }
-    if (listGroupNumbered){
-        listGroupNumbered.innerHTML = populateCategories(distinctCategories());
+            productsWrapper.innerHTML = populateProducts(products);
+        }
+        if (listGroupNumbered){
+            listGroupNumbered.innerHTML = populateCategories(distinctCategories(products));
 
-        renderCategory('.categories-list');
-    }
+            renderCategory('.categories-list', products);
+        }
 
-    function sorted(key, order='acs'){
-        return (a, b) => {
-            if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)){
-                return 0
-            }
-            const A = (typeof a[key] === 'string')
-            ? a[key].toUpperCase() : a[key];
-            const B = (typeof b[key] === 'string')
-            ? b[key].toUpperCase() : b[key];
+        function sorted(key, order='acs'){
+            return (a, b) => {
+                if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)){
+                    return 0
+                }
+                const A = (typeof a[key] === 'string')
+                ? a[key].toUpperCase() : a[key];
+                const B = (typeof b[key] === 'string')
+                ? b[key].toUpperCase() : b[key];
 
-            let compare = 0;
-            if(A>B){
-                compare = 1;
-            }else if(A<B){
-                compare = -1;
-            }
-            return (
-                (order === 'desc')?(compare*-1):compare
-            );
-        };
-    }
+                let compare = 0;
+                if(A>B){
+                    compare = 1;
+                }else if(A<B){
+                    compare = -1;
+                }
+                return (
+                    (order === 'desc')?(compare*-1):compare
+                );
+            };
+        }
 
-    let selectpicker = document.querySelector('.selectpicker');
-    if(selectpicker){
-      
-        selectpicker.addEventListener('change', function() {
-            switch(this.value){
-                case 'low-high':
-                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('price', 'asc')))
-                    break;
-                case 'high-low':
-                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('price', 'desc')))
-                    break;
-                case 'popularity':
-                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('stars', 'asc')))
-                    break;
-                default:
-                    productsWrapper.innerHTML = populateProducts(products.sort(sorted('id', 'asc')))
-            }
-            
-        })
-    }
-
-    let wishThisButtons = document.querySelectorAll('.wish-this');
-   
-
-    wishThisButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            console.log(event.target)
-            raite++
-
-            console.log(raite)
-        })
-    })
-
-    // add-to-cart
-    let addToCartButtons = document.querySelectorAll('.add-to-cart');
-
-
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            let productId = event.target.closest('.btn-block').dataset.id;
-            let price = event.target.closest('.btn-block').dataset.price;
-            addProductToCart({id: productId, price: price});
-           
-        })
-    })
-
-    // detail
-    let detailButtons = document.querySelectorAll('.detail');
-
-    detailButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            let productId = event.target.closest('.btn-block').dataset.id;
-            let product = products.find(product => product.id == productId);
-            toggleModal('block', product);
-            modalWindow.querySelector('.close')
-            .addEventListener('click', (event) => {
-                event.preventDefault();
-                toggleModal('none');
+        let selectpicker = document.querySelector('.selectpicker');
+        if(selectpicker){
+        
+            selectpicker.addEventListener('change', function() {
+                switch(this.value){
+                    case 'low-high':
+                        productsWrapper.innerHTML = populateProducts(products.sort(sorted('price', 'asc')))
+                        break;
+                    case 'high-low':
+                        productsWrapper.innerHTML = populateProducts(products.sort(sorted('price', 'desc')))
+                        break;
+                    case 'popularity':
+                        productsWrapper.innerHTML = populateProducts(products.sort(sorted('stars', 'asc')))
+                        break;
+                    default:
+                        productsWrapper.innerHTML = populateProducts(products.sort(sorted('id', 'asc')))
+                }
+                
             })
-        })
-    });
+        }
 
-    
+        addToCartButton()
+        detailButton(products)
+       
 
-    if(shoppingCart){
-        shoppingCart.innerHTML = populateShoppingCart(cart);
-        setCartTotal(cart);
-        renderCart();
-    }
+        
 
+        if(shoppingCart){
+            shoppingCart.innerHTML = populateShoppingCart(cart, products);
+            setCartTotal(cart);
+            renderCart();
+        }
+    // end promuce
+})
 
 });

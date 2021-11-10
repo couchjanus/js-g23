@@ -12,5 +12,46 @@
         <li><a href="index.html">Home</a></li>
         <li><a href="about.html">About</a></li>
     </ul>
+
+    <script>
+        function req(){
+            let http = false
+            http = new XMLHttpRequest()
+            return http
+        }
+
+        let request = req()
+        const url = 'https://reqres.in/api/products'
+
+        request.open('GET', url, true)
+        request.send()
+
+        request.onreadystatechange = () => {
+            switch(request.readyState){
+                case 1:
+                    console.log("1 => prepare...")
+                    break
+                case 2:
+                    console.log("2 => sending..")
+                    break
+                case 3:
+                    console.log("3 => rating..")
+                    break
+                case 4:
+
+                    console.log("4 => done..")
+                    if(request.status == 200){
+                        console.log(request.responseText)
+                    }else{
+                        console.log(request.status, request.responseText)
+                    }
+
+                    break  
+                default:
+                    console.log("error..")              
+            }
+        }
+
+    </script>
 </body>
 </html>
